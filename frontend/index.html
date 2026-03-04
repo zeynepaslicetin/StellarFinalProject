@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stellar Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+</head>
+<body style="background: #0f172a; color: white; text-align: center; font-family: sans-serif;">
+    <h1>✨ Stellar Wish Wall</h1>
+    <div id="status">Bekleniyor...</div>
+    <button onclick="connect()" style="padding: 10px; cursor: pointer;">Cuzdani Bagla</button>
+    
+    <div id="app" style="display:none; margin-top: 20px;">
+        <input type="text" id="wishInput" placeholder="Dilegini yaz...">
+        <button onclick="sendWish()">Gonder</button>
+    </div>
+
+    <script>
+        async function connect() {
+            const statusDiv = document.getElementById('status');
+           
+            let freighter = window.stellarFreighter;
+
+            if (!freighter) {
+                statusDiv.innerText = "Cuzdan araniyor, lutfen bekleyin...";
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                freighter = window.stellarFreighter;
+            }
+
+            if (freighter) {
+                try {
+                    const result = await freighter.getPublicKey();
+                    const address = typeof result === 'string' ? result : result.publicKey;
+                    
+                    statusDiv.innerText = "Baglandi: " + address;
+                    document.getElementById('app').style.display = "block";
+                    
+                    const response = await axios.get(`http://127.0.0.1:8000/api/balance/${address}`);
+                    statusDiv.innerText += " | Bakiye: " + response.data.balance + " XLM";
+                } catch (error) {
+                    console.error("Baglanti Hatasi:", error);
+                    alert("Baglanti reddedildi.");
+                }
+            } else {
+                alert("Hata: Freighter hala bulunamadi.\n\nLutfen:\n1. Eklentinin acik oldugunu kontrol edin.\n2. Sayfayi yenileyip 3 saniye bekleyin.\n3. Baska bir tarayici (Edge/Brave) deneyin.");
+            }
+        }
+    </script>
+</body>
+</html>
